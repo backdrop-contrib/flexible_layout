@@ -6,6 +6,129 @@
 
   include_once('flexible.inc');
 
+  
+/**
+ * Implements hook_menu().
+ */
+function flexible_layout_menu() {
+  $items = array();
+  $base = array(
+    'access arguments' => array('administer layouts'),
+    'theme callback' => 'ajax_base_page_theme',
+  );
+
+  $items['admin/structure/layouts/manage/%layout_tempstore/add-flexible-block/%/%'] = array(
+    'title' => 'Add block',
+    'page callback' => 'flexible_layout_block_add_page',
+    'page arguments' => array(4, 6, 7),
+  ) + $base;
+
+  return $items;
+}
+
+/**
+ * Menu callback; Display a list of blocks to be added to a layout.
+ */
+function flexible_layout_block_add_page(Layout $layout, $renderer_name, $region_name, $block_key = NULL) {
+  /* @var Layout $layout */
+  dpm("KKKKKK");
+  $form_state['layout'] = $layout;
+  $template_info = layout_get_layout_template_info($layout->layout_template);
+  if (!array_key_exists($region_name, $template_info['regions'])) {
+    //return MENU_NOT_FOUND;
+  }
+
+  // If a block has been selected, return the block configuration form.
+  if (isset($block_key)) {
+    list($module, $delta) = explode(':', $block_key);
+    $block_info = layout_get_block_info($module, $delta);
+    if (!$block_info) {
+      return MENU_NOT_FOUND;
+    }
+
+    $block = layout_create_handler('block', $block_key);
+    return backdrop_get_form('layout_block_configure_form', $layout, $block, $renderer_name, $region_name);
+  }
+
+  $blocks = layout_get_block_info();
+
+  // Assemble all blocks into a single list and sort.
+  $block_list = array();
+  foreach ($blocks as $module => $module_blocks) {
+    if (empty($module_blocks)) {
+      continue;
+    }
+    foreach ($module_blocks as $delta => $block_info) {
+      /* @var Block $parent_block */
+      $parent_block = layout_create_handler('block', $module . ':' . $delta);
+      $children = $parent_block->getChildren();
+      if (is_array($children)) {
+        foreach ($children as $child_id => $child_info) {
+          // Skip blocks that don't have context requirements met.
+          $required_contexts = isset($child_info['required contexts']) ? $child_info['required contexts'] : array();
+          if ($layout->hasContexts($required_contexts)) {
+            $block_list[$module . ':' . $delta . ':' . $child_id] = $child_info;
+          }
+        }
+      }
+      else {
+        $required_contexts = isset($block_info['required contexts']) ? $block_info['required contexts'] : array();
+        // Skip blocks that don't have context requirements met.
+        if ($layout->hasContexts($required_contexts)) {
+          $block_list[$module . ':' . $delta] = $block_info;
+        }
+      }
+    }
+  }
+  backdrop_sort($block_list, array('info' => SORT_STRING));
+
+  $output['search'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Search',
+    '#attributes' => array(
+      'id' => array('layout-block-list-search'),
+    ),
+    // Hide the search if no JavaScript is available.
+    '#wrapper_attributes' => array(
+      'class' => array('js-show'),
+    ),
+  );
+  $output['block_list'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('layout-block-list'),
+    ),
+  );
+
+  $output['block_list']['block_list_inner'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('layout-block-list-wrapper'),
+    ),
+  );
+
+  foreach ($block_list as $key => $block_info) {
+    $output['block_list']['block_list_inner'][$key] = array(
+      '#type' => 'item',
+      '#markup' => l(
+        $block_info['info'],
+        'admin/structure/layouts/manage/' . $layout->name . '/add-flexible-block/' . $renderer_name . '/' . $region_name . '/' . $key,
+        array(
+          'attributes' => array(
+            'class' => array('use-ajax block-item'),
+            'data-dialog' => TRUE,
+            'data-dialog-options' => json_encode(array('dialogClass' => 'layout-dialog')),
+          )
+        )
+      ),
+      '#description' => isset($block_info['description']) ? $block_info['description'] : NULL,
+      '#wrapper_attributes' => array('class' => array('layout-block-add-row'))
+    );
+  }
+
+  return $output;
+}
+
 /**
  * Implements hook_layout_renderer_info().
  */
@@ -109,16 +232,23 @@ $output = '';
   return $output;
 }
 
-
-/* function theme_build_flexible_layout($variables) {
-  $output = '';
-  $output .= '<div class="hero-layouts layout--flexible-template"><div id="skip-link">';
-  $output .= '<a href="#main-content" class="element-invisible element-focusable"></a></div>';
-
-
-  $output .= '"haha"</div>';
-dpm(panels_flexible_convert_settings());
-  return $output;
-}
+/**
+ * Define the actual list of columns and rows for this flexible panel.
  */
+function flexible_get_regions() {
+  $items = array();
+  $settings = panels_flexible_default_settings();
+  foreach ($settings['items'] as $id => $item) {
+    // Remove garbage values.
+    if (!isset($item['type'])) {
+      unset($items[$id]);
+    }
+    else if ($item['type'] == 'region') {
+      $items[$id] = $item['title'];
+    }
+  }
+
+  return $items;
+}
+
 

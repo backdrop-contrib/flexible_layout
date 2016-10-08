@@ -99,7 +99,7 @@ function panels_flexible_default_settings() {
           'type' => 'column',
           'width' => 100,
           'width_type' => '%',
-          'children' => array('main-row', 'main-row2'),
+          'children' => array('main-row', 'main-row2', 'main-row3'),
           'parent' => 'canvas',
         ),
         'main-row' => array(
@@ -128,179 +128,22 @@ function panels_flexible_default_settings() {
           'width_type' => '%',
           'parent' => 'main-row2',
         ),
-      ),
-    );
-  return $settings;
-}
-
-/**
- * Convert settings from old style to new, or provide defaults for
- * empty settings.
- * @param <type> $settings
- */
-function panels_flexible_convert_settings(&$settings, &$layout) {
-  // This indicates that this is a layout that they used the checkbox
-  // on. The layout is still 'flexible' but it's actually pointing
-  // to another stored one and we have to load it.
-  if (!empty($settings['layout'])) {
-    $layout = panels_get_layout('flexible:' . $settings['layout']);
-  }
-
-  if (!empty($layout['layout'])) {
-    $settings = $layout['layout']->settings;
-    if ($settings) {
-      return $settings;
-    }
-  }
-
-  if (empty($settings)) {
-    // set up a default
-    $settings = array(
-      'items' => array(
-        // The 'canvas' is a special row that does not get rendered
-        // normally, but is used to contain the columns.
-        'canvas' => array(
-          'type' => 'row',
-          'contains' => 'column',
-          'children' => array('main'),
-          'parent' => NULL,
-        ),
-        'main' => array(
-          'type' => 'column',
-          'width' => 100,
-          'width_type' => '%',
-          'children' => array('main-row'),
-          'parent' => 'canvas',
-        ),
-        'main-row' => array(
+        'main-row3' => array(
           'type' => 'row',
           'contains' => 'region',
-          'children' => array('center'),
+          'children' => array('title2'),
           'parent' => 'main',
         ),
-        'center' => array(
+        'title2' => array(
           'type' => 'region',
           'title' => t('Center'),
           'width' => 100,
           'width_type' => '%',
-          'parent' => 'main-row',
+          'parent' => 'main-row3',
         ),
       ),
     );
-  }
-  else if (!isset($settings['items'])) {
-    // Convert an old style flexible to a new style flexible.
-    $old = $settings;
-    $settings = array();
-    $settings['items']['canvas'] = array(
-      'type' => 'row',
-      'contains' => 'column',
-      'children' => array(),
-      'parent' => NULL,
-    );
-    // add the left sidebar column, row and region if it exists.
-    if (!empty($old['sidebars']['left'])) {
-      $settings['items']['canvas']['children'][] = 'sidebar-left';
-      $settings['items']['sidebar-left'] = array(
-        'type' => 'column',
-        'width' => $old['sidebars']['left_width'],
-        'width_type' => $old['sidebars']['width_type'],
-        'children' => array('sidebar-left-row'),
-        'parent' => 'canvas',
-      );
-      $settings['items']['sidebar-left-row'] = array(
-        'type' => 'row',
-        'contains' => 'region',
-        'children' => array('sidebar_left'),
-        'parent' => 'sidebar-left',
-      );
-      $settings['items']['sidebar_left'] = array(
-        'type' => 'region',
-        'title' => t('Left sidebar'),
-        'width' => 100,
-        'width_type' => '%',
-        'parent' => 'sidebar-left-row',
-      );
-    }
-
-    $settings['items']['canvas']['children'][] = 'main';
-
-    if (!empty($old['sidebars']['right'])) {
-      $settings['items']['canvas']['children'][] = 'sidebar-right';
-      $settings['items']['sidebar-right'] = array(
-        'type' => 'column',
-        'width' => $old['sidebars']['right_width'],
-        'width_type' => $old['sidebars']['width_type'],
-        'children' => array('sidebar-right-row'),
-        'parent' => 'canvas',
-      );
-      $settings['items']['sidebar-right-row'] = array(
-        'type' => 'row',
-        'contains' => 'region',
-        'children' => array('sidebar_right'),
-        'parent' => 'sidebar-right',
-      );
-      $settings['items']['sidebar_right'] = array(
-        'type' => 'region',
-        'title' => t('Right sidebar'),
-        'width' => 100,
-        'width_type' => '%',
-        'parent' => 'sidebar-right-row',
-      );
-    }
-
-    // Add the main column.
-    $settings['items']['main'] = array(
-      'type' => 'column',
-      'width' => 100,
-      'width_type' => '%',
-      'children' => array(),
-      'parent' => 'canvas',
-    );
-
-    // Add rows and regions.
-    for ($row = 1; $row <= intval($old['rows']); $row++) {
-      // Create entry for the row
-      $settings['items']["row_$row"] = array(
-        'type' => 'row',
-        'contains' => 'region',
-        'children' => array(),
-        'parent' => 'main',
-      );
-      // Add the row to the parent's children
-      $settings['items']['main']['children'][] = "row_$row";
-
-      for ($col = 1; $col <= intval($old["row_$row"]['columns']); $col++) {
-        // Create entry for the region
-        $settings['items']["row_${row}_$col"] = array(
-          'type' => 'region',
-          'width' => $old["row_$row"]["width_$col"],
-          'width_type' => '%',
-          'parent' => "row_$row",
-        );
-        // Add entry for the region to the row's children
-        $settings['items']["row_$row"]['children'][] = "row_${row}_$col";
-
-        // Apply the proper title to the region
-        if (!empty($old["row_$row"]['names'][$col - 1])) {
-          $settings['items']["row_${row}_$col"]['title'] = $old["row_$row"]['names'][$col - 1];
-        }
-        else {
-          $settings['items']["row_${row}_$col"]['title'] = t("Row @row, Column @col", array('@row' => $row, '@col' => $col));
-        }
-      }
-    }
-  }
-  else if (isset($settings['canvas'])) {
-    // Convert the old 'canvas' to the new canvas row.
-    $settings['items']['canvas'] = array(
-      'type' => 'row',
-      'contains' => 'column',
-      'children' => $settings['canvas'],
-      'parent' => NULL,
-    );
-    unset($settings['canvas']);
-  }
+  return $settings;
 }
 
 /**

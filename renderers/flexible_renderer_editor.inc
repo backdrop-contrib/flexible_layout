@@ -16,6 +16,10 @@ class FlexibleLayoutRendererEditor extends LayoutRendererStandard {
     if (!isset($this->layout_info['regions']['title'])) {
       $this->layout_info['regions']['title'] = t('Page title');
     }
+    $regions = flexible_get_regions();
+    foreach ($regions as $key => $region) {
+      $this->layout_info['regions'][$key] = $region;
+    }
     $this->admin = TRUE;
   }
 
@@ -193,7 +197,7 @@ class FlexibleLayoutRendererEditor extends LayoutRendererStandard {
     else {
       $links['add'] = array(
         'title' => t('Add block'),
-        'href' => $this->getUrl('add-block', $region_id),
+        'href' => $this->getUrl('add-flexible-block', $region_id),
         'attributes' => array(
           'class' => array('use-ajax'),
           'data-dialog' => TRUE,
