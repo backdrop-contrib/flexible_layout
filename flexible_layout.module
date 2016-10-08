@@ -1,0 +1,124 @@
+<?php
+/**
+ * @file
+ * Flexible layout module.
+ */
+
+  include_once('flexible.inc');
+
+/**
+ * Implements hook_layout_renderer_info().
+ */
+function flexible_layout_layout_renderer_info() {
+  $info['flexible'] = array(
+    'class' => 'FlexibleLayoutRenderer',
+  );
+  $info['flexible_editor'] = array(
+    'class' => 'FlexibleLayoutRendererEditor',
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function flexible_layout_autoload_info() {
+  return array(
+    'FlexibleLayoutRenderer' => 'renderers/flexible_renderer_standard.inc',
+    'FlexibleLayoutRendererEditor' => 'renderers/flexible_renderer_editor.inc',
+  );
+}
+
+function flexible_layout_form_layout_settings_form_alter(&$form, &$form_state, $form_id) {
+  // $template_info['path'] = backdrop_get_path('module', 'flexible_layout') . '/flexible_template';
+  // $template_info['title'] = 'Flexible template';
+  // $template_info['preview'] = 'flexible_template.png';
+  // dpm($template_info);
+  // $form['layout_template']['#options']['flexible'] = theme('layout_template_option', array('template_info' => $template_info));
+  $form['#submit'][] = array('flexible_layout_settings_form_submit');
+}
+
+function flexible_layout_settings_form_submit($form, &$form_state) {
+  dpm($form_state);
+}
+
+
+function flexible_layout_form_layout_content_form_alter(&$form, &$form_state, $form_id) {
+  dpm($form_state['layout']);
+  if ($form_state['layout']->layout_template == 'flexible_template') {
+    $renderer = layout_create_renderer('flexible_editor', $form_state['layout']);
+    $form['content']['display'] = array(
+      '#markup' => $renderer->render(),
+    );
+
+    foreach ($renderer->layout_info['regions'] as $region_id => $title) {
+      // Make sure we at least have an empty array for all possible locations.
+      if (!isset($layout->positions[$region_id])) {
+        $layout->positions[$region_id] = array();
+      }
+
+      $form['content']['positions'][$region_id] = array(
+        // Use 'hidden' instead of 'value' so the JS can access it.
+        '#type' => 'hidden',
+        '#default_value' => implode(',', $layout->positions[$region_id]),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_theme()
+ */
+function flexible_layout_theme() {
+  $items = array(
+    'build_flexible_layout' => array(
+      'variables' => array('content' => NULL, 'settings' => NULL, 'layout' => NULL, 'layout_info' => NULL, 'renderer' => NULL, 'attributes' => array(), 'admin' => FALSE),
+    ),
+  );
+  return $items;
+}
+
+function theme_build_flexible_layout($vars) {
+  $css_id = $vars['css_id'];
+  $content = $vars['content'];
+  $settings = panels_flexible_default_settings();
+  $display = $vars['display'];
+  $layout = $vars['layout'];
+  $handler = $vars['renderer'];
+dpm($settings);
+$output = '';
+  $renderer = panels_flexible_create_renderer(TRUE, $css_id, $content, $settings, $display, $layout, $handler);
+
+  $css = panels_flexible_render_css($renderer);
+
+  // For the administrative view, add CSS directly to head.
+  drupal_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
+
+  $output = "<div class=\"panel-flexible " . $renderer->base['canvas'] . " clearfix panel-flexible-admin panel-flexible-edit-layout\" $renderer->id_str>\n";
+
+  $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside \">\n";
+
+  $content = panels_flexible_render_items($renderer, $settings['items']['canvas']['children'], $renderer->base['row'] . '-canvas');
+  $output .= panels_flexible_render_item($renderer, $settings['items']['canvas'], $content, 'canvas', 0, 0, TRUE);
+
+  // Wrap the whole thing up nice and snug
+  $output .= "</div>\n</div>\n";
+
+  // drupal_add_js($layout['path'] . '/flexible-admin.js');
+  // drupal_add_js(array('flexible' => array('resize' => url($handler->get_url('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
+  return $output;
+}
+
+
+/* function theme_build_flexible_layout($variables) {
+  $output = '';
+  $output .= '<div class="hero-layouts layout--flexible-template"><div id="skip-link">';
+  $output .= '<a href="#main-content" class="element-invisible element-focusable"></a></div>';
+
+
+  $output .= '"haha"</div>';
+dpm(panels_flexible_convert_settings());
+  return $output;
+}
+ */
+

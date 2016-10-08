@@ -1,0 +1,5 @@
+name = Flexible layouts
+description = A layout with configurable rows, cloumns and regions.
+package = Layouts
+type = module
+backdrop = 1.x
