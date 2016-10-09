@@ -31,7 +31,6 @@ function flexible_layout_menu() {
  */
 function flexible_layout_block_add_page(Layout $layout, $renderer_name, $region_name, $block_key = NULL) {
   /* @var Layout $layout */
-  dpm("KKKKKK");
   $form_state['layout'] = $layout;
   $template_info = layout_get_layout_template_info($layout->layout_template);
   if (!array_key_exists($region_name, $template_info['regions'])) {
@@ -47,6 +46,7 @@ function flexible_layout_block_add_page(Layout $layout, $renderer_name, $region_
     }
 
     $block = layout_create_handler('block', $block_key);
+    form_load_include($form_state, 'inc', 'layout', 'layout.admin');
     return backdrop_get_form('layout_block_configure_form', $layout, $block, $renderer_name, $region_name);
   }
 
@@ -152,24 +152,12 @@ function flexible_layout_autoload_info() {
   );
 }
 
-function flexible_layout_form_layout_settings_form_alter(&$form, &$form_state, $form_id) {
-  // $template_info['path'] = backdrop_get_path('module', 'flexible_layout') . '/flexible_template';
-  // $template_info['title'] = 'Flexible template';
-  // $template_info['preview'] = 'flexible_template.png';
-  // dpm($template_info);
-  // $form['layout_template']['#options']['flexible'] = theme('layout_template_option', array('template_info' => $template_info));
-  $form['#submit'][] = array('flexible_layout_settings_form_submit');
-}
-
-function flexible_layout_settings_form_submit($form, &$form_state) {
-  dpm($form_state);
-}
-
-
 function flexible_layout_form_layout_content_form_alter(&$form, &$form_state, $form_id) {
-  dpm($form_state['layout']);
-  if ($form_state['layout']->layout_template == 'flexible_template') {
-    $renderer = layout_create_renderer('flexible_editor', $form_state['layout']);
+  $layout = $form_state['layout'];
+  if ($layout->layout_template == 'flexible_template') {
+    $renderer = layout_create_renderer('flexible_editor', $layout);
+    dpm($form_state);
+    dpm($renderer);
     $form['content']['display'] = array(
       '#markup' => $renderer->render(),
     );
@@ -208,8 +196,8 @@ function theme_build_flexible_layout($vars) {
   $display = $vars['display'];
   $layout = $vars['layout'];
   $handler = $vars['renderer'];
-dpm($settings);
-$output = '';
+
+  $output = '';
   $renderer = panels_flexible_create_renderer(TRUE, $css_id, $content, $settings, $display, $layout, $handler);
 
   $css = panels_flexible_render_css($renderer);

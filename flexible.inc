@@ -147,25 +147,6 @@ function panels_flexible_default_settings() {
 }
 
 /**
- * Define the actual list of columns and rows for this flexible panel.
- */
-function panels_flexible_panels($display, $settings, $layout) {
-  $items = array();
-  panels_flexible_convert_settings($settings, $layout);
-  foreach ($settings['items'] as $id => $item) {
-    // Remove garbage values.
-    if (!isset($item['type'])) {
-      unset($items[$id]);
-    }
-    else if ($item['type'] == 'region') {
-      $items[$id] = $item['title'];
-    }
-  }
-
-  return $items;
-}
-
-/**
  * Create a renderer object.
  *
  * The renderer object contains data that is passed around from function
@@ -355,7 +336,6 @@ function panels_flexible_render_items($renderer, $list, $owner_id) {
   $groups = array('left' => '', 'middle' => '', 'right' => '');
   $max = count($list) - 1;
   $prev = NULL;
-          dpm($list);
 
   foreach ($list as $position => $id) {
     $item = $renderer->settings['items'][$id];
