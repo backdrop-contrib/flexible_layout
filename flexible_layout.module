@@ -156,8 +156,6 @@ function flexible_layout_form_layout_content_form_alter(&$form, &$form_state, $f
   $layout = $form_state['layout'];
   if ($layout->layout_template == 'flexible_template') {
     $renderer = layout_create_renderer('flexible_editor', $layout);
-    dpm($form_state);
-    dpm($renderer);
     $form['content']['display'] = array(
       '#markup' => $renderer->render(),
     );
@@ -203,20 +201,23 @@ function theme_build_flexible_layout($vars) {
   $css = panels_flexible_render_css($renderer);
 
   // For the administrative view, add CSS directly to head.
-  drupal_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
+  backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
 
   $output = "<div class=\"panel-flexible " . $renderer->base['canvas'] . " clearfix panel-flexible-admin panel-flexible-edit-layout\" $renderer->id_str>\n";
 
   $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside \">\n";
 
   $content = panels_flexible_render_items($renderer, $settings['items']['canvas']['children'], $renderer->base['row'] . '-canvas');
+
   $output .= panels_flexible_render_item($renderer, $settings['items']['canvas'], $content, 'canvas', 0, 0, TRUE);
 
   // Wrap the whole thing up nice and snug
   $output .= "</div>\n</div>\n";
 
-  // drupal_add_js($layout['path'] . '/flexible-admin.js');
-  // drupal_add_js(array('flexible' => array('resize' => url($handler->get_url('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
+  backdrop_add_css(backdrop_get_path('module', 'flexible_layout') . '/css/flexible-admin.css');
+  backdrop_add_css(backdrop_get_path('module', 'flexible_layout') . '/css/flexible.css');
+  backdrop_add_js(backdrop_get_path('module', 'flexible_layout') . '/js/flexible-admin.js');
+  backdrop_add_js(array('flexible' => array('resize' => url($handler->getUrl('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
   return $output;
 }
 

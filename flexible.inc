@@ -92,12 +92,32 @@ function panels_flexible_default_settings() {
         'canvas' => array(
           'type' => 'row',
           'contains' => 'column',
-          'children' => array('main'),
+          'children' => array('main', '2main'),
           'parent' => NULL,
+        ),
+        '2main' => array(
+          'type' => 'column',
+          'width' => 50,
+          'width_type' => '%',
+          'children' => array('2main-row'),
+          'parent' => 'canvas',
+        ),
+        '2main-row' => array(
+          'type' => 'row',
+          'contains' => 'region',
+          'children' => array('2flex'),
+          'parent' => '2main',
+        ),
+        '2flex' => array(
+          'type' => 'region',
+          'title' => t('Center'),
+          'width' => 100,
+          'width_type' => '%',
+          'parent' => '2main-row',
         ),
         'main' => array(
           'type' => 'column',
-          'width' => 100,
+          'width' => 50,
           'width_type' => '%',
           'children' => array('main-row', 'main-row2', 'main-row3'),
           'parent' => 'canvas',
@@ -472,6 +492,7 @@ function panels_flexible_render_item($renderer, $item, $content, $id, $position,
  * modify the right item.
  */
 function panels_flexible_render_splitter($renderer, $left_id, $right_id) {
+  dpm($left_id);
   $left = $renderer->settings['items'][$left_id];
 
   $left_class = $renderer->base[$left['type']] . '-' . $left_id;
@@ -687,8 +708,28 @@ function panels_flexible_render_css_group($renderer, $list, $owner_id, $type, $i
 
   panels_flexible_get_css_group($css, $renderer, $list, $owner_id, $type, $id);
 
-  //return ctools_css_assemble($css);
-  return '';
+  return ctools_css_assemble($css);
+  // return '';
+}
+
+function ctools_css_assemble($css_data) {
+  // Initialize the output.
+  $css = '';
+  // Iterate through all the statements.
+  foreach ($css_data as $selector_str => $declaration) {
+    // Add the selectors, separating them with commas and line feeds.
+    $css .= strpos($selector_str, ',') === FALSE ? $selector_str : str_replace(", ", ",\n", $selector_str);
+    // Add the opening curly brace.
+    $css .= " {\n";
+    // Iterate through all the declarations.
+    foreach ($declaration as $property => $value) {
+      $css .= "  " . $property . ": " . $value . ";\n";
+    }
+    // Add the closing curly brace.
+    $css .= "}\n\n";
+  }
+  // Return the output.
+  return $css;
 }
 
 /**
