@@ -38,7 +38,6 @@ Backdrop.behaviors.flexibleAdmin = {
     $('div.panels-flexible-splitter:not(.panels-splitter-processed)')
       .addClass('panels-splitter-processed')
       .each(function() {
-        console.log(this);
         Backdrop.flexible.splitters.push(new Backdrop.flexible.splitter($(this)));
       });
 

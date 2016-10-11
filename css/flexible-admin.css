@@ -10,7 +10,7 @@
 
 .panel-flexible-edit-layout .panels-flexible-column-inside {
 /*  margin: 5px; */
-  border: 1px dotted green;
+  /* border: 1px solid #ddd; */
 }
 
 .panels-flexible-column-inside {
@@ -23,7 +23,7 @@
 
 .panel-flexible-edit-layout .panels-flexible-row-inside {
   margin: 5px;
-  border: 1px dotted blue;
+  /* background-color: #eee; */
 }
 
 .panel-flexible-edit-layout .panels-flexible-row > .flexible-title {
@@ -84,4 +84,3 @@
 #panels-edit-display .helperclass {
   margin: .5em;
 }
-
