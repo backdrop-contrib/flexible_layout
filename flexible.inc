@@ -95,71 +95,19 @@ function panels_flexible_default_settings() {
           'children' => array('main', '2main'),
           'parent' => NULL,
         ),
-        '2main' => array(
-          'type' => 'column',
-          'width' => 50,
-          'width_type' => '%',
-          'children' => array('2main-row'),
-          'parent' => 'canvas',
-        ),
-        '2main-row' => array(
-          'type' => 'row',
-          'contains' => 'region',
-          'children' => array('2flex'),
-          'parent' => '2main',
-        ),
-        '2flex' => array(
-          'type' => 'region',
-          'title' => t('Center'),
-          'width' => 100,
-          'width_type' => '%',
-          'parent' => '2main-row',
-        ),
         'main' => array(
           'type' => 'column',
           'width' => 50,
           'width_type' => '%',
-          'children' => array('main-row', 'main-row2', 'main-row3'),
+          'children' => array(),
           'parent' => 'canvas',
         ),
-        'main-row' => array(
-          'type' => 'row',
-          'contains' => 'region',
-          'children' => array('flex'),
-          'parent' => 'main',
-        ),
-        'flex' => array(
-          'type' => 'region',
-          'title' => t('Center'),
-          'width' => 100,
+        'main2' => array(
+          'type' => 'column',
+          'width' => 50,
           'width_type' => '%',
-          'parent' => 'main-row',
-        ),
-        'main-row2' => array(
-          'type' => 'row',
-          'contains' => 'region',
-          'children' => array('title'),
-          'parent' => 'main',
-        ),
-        'title' => array(
-          'type' => 'region',
-          'title' => t('Center'),
-          'width' => 100,
-          'width_type' => '%',
-          'parent' => 'main-row2',
-        ),
-        'main-row3' => array(
-          'type' => 'row',
-          'contains' => 'region',
-          'children' => array('title2'),
-          'parent' => 'main',
-        ),
-        'title2' => array(
-          'type' => 'region',
-          'title' => t('Center'),
-          'width' => 100,
-          'width_type' => '%',
-          'parent' => 'main-row3',
+          'children' => array(),
+          'parent' => 'canvas',
         ),
       ),
     );
@@ -196,7 +144,6 @@ function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &
   $renderer->base_class           = $renderer->name;
   $renderer->item_class['column'] = 'panels-flexible-column';
   $renderer->item_class['row']    = 'panels-flexible-row';
-  $renderer->item_class['region'] = 'panels-flexible-region';
   $renderer->base['canvas']       = 'panels-flexible-' . $renderer->base_class;
 
   // Override these if selected from the UI and not in admin mode.
@@ -211,15 +158,10 @@ function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &
     if (!empty($settings['items']['canvas']['row_class'])) {
       $renderer->item_class['row'] = $settings['items']['canvas']['row_class'];
     }
-    if (!empty($settings['items']['canvas']['region_class'])) {
-      $renderer->item_class['region'] = $settings['items']['canvas']['region_class'];
-    }
   }
 
   // Get the separation values out of the canvas settings.
   $renderer->column_separation = !empty($settings['items']['canvas']['column_separation']) ? $settings['items']['canvas']['column_separation'] : '0.5em';
-
-  $renderer->region_separation = !empty($settings['items']['canvas']['region_separation']) ? $settings['items']['canvas']['region_separation'] : '0.5em';
 
   $renderer->row_separation = !empty($settings['items']['canvas']['row_separation']) ? $settings['items']['canvas']['row_separation'] : '0.5em';
 
@@ -227,7 +169,6 @@ function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &
 
   $renderer->base['column'] = $renderer->item_class['column'] . '-' . $renderer->base_class;
   $renderer->base['row']    = $renderer->item_class['row'] . '-' . $renderer->base_class;
-  $renderer->base['region'] = $renderer->item_class['region'] . '-' . $renderer->base_class;
 
   if ($renderer->name != 'new') {
     // Use v2 to guarantee all CSS gets regenerated to account for changes in
@@ -366,19 +307,13 @@ function panels_flexible_render_items($renderer, $list, $owner_id) {
     }
 
     switch ($item['type']) {
-      case 'column':
-        $content = panels_flexible_render_items($renderer, $item['children'], $renderer->base['column'] . '-' . $id);
-        if (empty($renderer->settings['items'][$id]['hide_empty']) || trim($content)) {
-          $groups[$location] .= panels_flexible_render_item($renderer, $item, $content, $id, $position, $max);
-        }
-        break;
       case 'row':
         $content = panels_flexible_render_items($renderer, $item['children'], $renderer->base['row'] . '-' . $id);
         if (empty($renderer->settings['items'][$id]['hide_empty']) || trim($content)) {
           $groups[$location] .= panels_flexible_render_item($renderer, $item, $content, $id, $position, $max, TRUE);
         }
         break;
-      case 'region':
+      case 'column':
         if (empty($renderer->settings['items'][$id]['hide_empty'])) {
           $content = isset($renderer->content[$id]) ? $renderer->content[$id] : "&nbsp;";
         }
@@ -562,19 +497,7 @@ function panels_flexible_render_item_links($renderer, $id, $item) {
   $links = array();
   $remove = '';
   $add = '';
-  if ($item['type'] == 'column') {
-    $title = t('Column');
-    $settings = t('Column settings');
-    if (empty($item['children'])) {
-      $remove = t('Remove column');
-      $add = t('Add row');
-    }
-    else {
-      $add = t('Add row to top');
-      $add2 = t('Add row to bottom');
-    }
-  }
-  else if ($item['type'] == 'row') {
+  if ($item['type'] == 'row') {
     if ($id == 'canvas') {
       $title = t('Canvas');
       $settings = t('Canvas settings');
@@ -587,17 +510,11 @@ function panels_flexible_render_item_links($renderer, $id, $item) {
       if ($id != 'canvas') {
         $remove = t('Remove row');
       }
-      $add = $item['contains'] == 'region' ? t('Add region') : t('Add column');
     }
     else {
-      $add = $item['contains'] == 'region' ? t('Add region to left') : t('Add column to left');
-      $add2 = $item['contains'] == 'region' ? t('Add region to right') : t('Add column to right');
+      $add = t('Add column to left');
+      $add2 = t('Add column to right');
     }
-  }
-  else if ($item['type'] == 'region') {
-    $title = t('Region');
-    $settings = t('Region settings');
-    $remove = t('Remove region');
   }
 
   if (!empty($settings)) {
@@ -660,24 +577,6 @@ function panels_flexible_render_css($renderer) {
  */
 function panels_flexible_render_css_group($renderer, $list, $owner_id, $type, $id) {
   $css = array();
-
-  // Start off with some generic CSS to properly pad regions
-  $css[$owner_id . ' .' . $renderer->item_class['region']] = array(
-    'padding' => '0',
-  );
-
-  $css[$owner_id . ' .' . $renderer->item_class['region'] . '-inside'] = array(
-    'padding-right' => $renderer->region_separation,
-    'padding-left' => $renderer->region_separation,
-  );
-
-  $css[$owner_id . ' .' . $renderer->item_class['region'] . '-inside-first'] = array(
-    'padding-left' => '0',
-  );
-
-  $css[$owner_id . ' .' . $renderer->item_class['region'] . '-inside-last'] = array(
-    'padding-right' => '0',
-  );
 
   $css[$owner_id . ' .' . $renderer->item_class['column']] = array(
     'padding' => '0',
@@ -870,9 +769,6 @@ function panels_flexible_get_css_group(&$css, $renderer, $list, $owner_id, $type
       // Columns can only contain rows.
       $child_type = 'row';
     }
-    else {
-      $child_type = isset($item['contains']) ? $item['contains'] : 'region';
-    }
 
     $class = "." . $renderer->base[$type] . "-$id";
     panels_flexible_get_css_group($css, $renderer, $item['children'], $class, $child_type, $id);
@@ -912,9 +808,6 @@ function panels_ajax_flexible_edit_settings($handler, $id) {
       else {
         $title = t('Configure row');
       }
-      break;
-    case 'region':
-      $title = t('Configure region');
       break;
   }
 

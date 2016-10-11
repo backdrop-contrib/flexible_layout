@@ -232,7 +232,7 @@ function flexible_get_regions() {
     if (!isset($item['type'])) {
       unset($items[$id]);
     }
-    else if ($item['type'] == 'region') {
+    else if ($item['type'] == 'column') {
       $items[$id] = $item['title'];
     }
   }
