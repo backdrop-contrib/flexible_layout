@@ -23,8 +23,27 @@ function flexible_layout_menu() {
     'page arguments' => array(4, 6, 7),
   ) + $base;
 
+  $items['admin/structure/layouts/manage/%layout_tempstore/flexible-layout/%/settings/%'] = array(
+    'title' => 'Edit settings',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('flexible_layout_edit_settings', 4, 6, 7, 8),
+  ) + $base;
+
+  $items['admin/structure/layouts/manage/%layout_tempstore/flexible-layout/%/add/%'] = array(
+    'title' => 'Add item',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('panels_flexible_add_item_form', 4, 6, 7, 8),
+  ) + $base;
+
+  $items['admin/structure/layouts/manage/%layout_tempstore/flexible-layout/%/remove/%'] = array(
+    'title' => 'Remove item',
+    'page callback' => 'panels_ajax_flexible_edit_remove',
+    'page arguments' => array(6, 7),
+  ) + $base;
+
   return $items;
 }
+
 
 /**
  * Menu callback; Display a list of blocks to be added to a layout.
@@ -236,7 +255,7 @@ function flexible_get_regions() {
       $items[$id] = $item['title'];
     }
   }
-
+dpm($items);
   return $items;
 }
 
