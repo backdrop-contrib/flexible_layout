@@ -97,16 +97,15 @@ function panels_flexible_default_settings() {
         ),
         'main' => array(
           'type' => 'row',
-          'title' => 'Column 1',
+          'title' => 'row 1',
           'width' => 100,
           'width_type' => '%',
-          'contains' => 'column',
-          'children' => array('main2'),
+          'children' => array('main_col'),
           'parent' => 'canvas',
         ),
-        'main2' => array(
+        'main_col' => array(
           'type' => 'column',
-          'title' => 'Column 2',
+          'title' => 'column 1',
           'width' => 100,
           'width_type' => '%',
           'children' => array(),
@@ -114,7 +113,8 @@ function panels_flexible_default_settings() {
         ),
       ),
     );
-  return $settings;
+
+    return $settings;
 }
 
 /**
@@ -127,6 +127,7 @@ function panels_flexible_default_settings() {
  */
 function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &$display, $layout, $handler) {
   $renderer = new stdClass;
+  $renderer->admin = TRUE; // this must go
   $renderer->settings = $settings;
   $renderer->content = $content;
   $renderer->css_id = $css_id;
@@ -169,7 +170,6 @@ function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &
   $renderer->row_separation = !empty($settings['items']['canvas']['row_separation']) ? $settings['items']['canvas']['row_separation'] : '0.5em';
 
   // Make some appended classes so it's easier to reference them.
-dpm($renderer->base_class);
   $renderer->base['column'] = $renderer->item_class['column'] . '-' . $renderer->base_class;
   $renderer->base['row']    = $renderer->item_class['row'] . '-' . $renderer->base_class;
 
@@ -288,7 +288,7 @@ function theme_panels_flexible_admin($vars) {
   $output .= "</div>\n</div>\n";
 
   drupal_add_js($layout['path'] . '/flexible-admin.js');
-  drupal_add_js(array('flexible' => array('resize' => url($handler->get_url('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
+  drupal_add_js(array('flexible' => array('resize' => url($handler->getUrl('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
   return $output;
 }
 
@@ -1203,7 +1203,7 @@ function panels_ajax_flexible_edit_add($form, $form_state) {
  * @param <type> $form_state
  * @return <type>
  */
-function panels_flexible_add_item_form($form, &$form_state, Layout $layout, $renderer_name, $action, $id = NULL, $location = 'left') {
+function panels_flexible_add_item_form($form, &$form_state, Layout $layout, $renderer_name, $action, $id = NULL, $location = 'middle') {
   // Todo: get from configuration
   $settings = panels_flexible_default_settings();
   $handler = layout_create_renderer($renderer_name, $layout);
