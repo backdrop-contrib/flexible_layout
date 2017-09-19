@@ -1100,10 +1100,12 @@ function panels_ajax_flexible_edit_add($form, $form_state) {
   $location = isset($form_state['location']) ? $form_state['location'] : 'left';
   $item = $form_state['item'];
   $parent = $form_state['parent'];
+  $settings = $form_state['settings'];
+  $layout = $form_state['layout'];
 
   $css_id = isset($handler->display->css_id) ? $handler->display->css_id : '';
   // Create a renderer object so we can render our new stuff.
-  $renderer = panels_flexible_create_renderer(TRUE, $css_id, array(), $settings, $handler->display, $handler->plugins['layout'], $handler);
+  $renderer = panels_flexible_create_renderer(TRUE, $css_id, array(), $settings, $handler->display, $layout, $handler);
 
   $content = '';
   if ($item['type'] == 'region') {
