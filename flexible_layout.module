@@ -4,7 +4,7 @@
  * Flexible layout module.
  */
 
-  include_once('flexible.inc');
+include_once('flexible.inc');
 
   
 /**
@@ -44,17 +44,18 @@ function flexible_layout_menu() {
   return $items;
 }
 
-
 /**
  * Menu callback; Display a list of blocks to be added to a layout.
+ *
+ * This function is identical to the core function layout_block_add_page()
+ * except the core function makes a call to layout_get_layout_template_info()
+ * to ensure that the region into which the block is being added exists in the
+ * template. In this case though, our regions are being created dynamically and
+ * don't exist in the template, which would cause the core function to fail.
  */
 function flexible_layout_block_add_page(Layout $layout, $renderer_name, $region_name, $block_key = NULL) {
   /* @var Layout $layout */
   $form_state['layout'] = $layout;
-  $template_info = layout_get_layout_template_info($layout->layout_template);
-  if (!array_key_exists($region_name, $template_info['regions'])) {
-    //return MENU_NOT_FOUND;
-  }
 
   // If a block has been selected, return the block configuration form.
   if (isset($block_key)) {
@@ -171,6 +172,18 @@ function flexible_layout_autoload_info() {
   );
 }
 
+
+function flexible_layout_layout_presave($layout) {
+  if ($layout->layout_template == 'flexible_template' && empty($layout->settings['flexible'])) {
+    $layout->settings['flexible'] = layout_flexible_default_settings();
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Used here to override the default layout renderer.
+ */
 function flexible_layout_form_layout_content_form_alter(&$form, &$form_state, $form_id) {
   $layout = $form_state['layout'];
   if ($layout->layout_template == 'flexible_template') {
@@ -200,17 +213,20 @@ function flexible_layout_form_layout_content_form_alter(&$form, &$form_state, $f
 function flexible_layout_theme() {
   $items = array(
     'build_flexible_layout' => array(
-      'variables' => array('content' => NULL, 'settings' => NULL, 'layout' => NULL, 'layout_info' => NULL, 'renderer' => NULL, 'attributes' => array(), 'admin' => FALSE),
+      'variables' => array('content' => NULL, 'settings' => NULL, 'layout' => NULL, 'renderer' => NULL),
     ),
   );
   return $items;
 }
 
+/**
+ * Builds the flexible layout block add page.
+ */
 function theme_build_flexible_layout($vars) {
-  $css_id = $vars['css_id'];
+  $css_id = ''; // go
   $content = $vars['content'];
-  $settings = panels_flexible_default_settings();
-  $display = $vars['display'];
+  $settings = $vars['layout']->settings['flexible'];
+  $display = $vars['layout']; // go
   $layout = $vars['layout'];
   $handler = $vars['renderer'];
 
@@ -226,8 +242,10 @@ function theme_build_flexible_layout($vars) {
 
   $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside \">\n";
 
+  // panels_flexible_render_items($renderer, $list, $owner_id)
   $content = panels_flexible_render_items($renderer, $settings['items']['canvas']['children'], $renderer->base['row'] . '-canvas');
 
+  //panels_flexible_render_item($renderer, $item, $content, $id, $position, $max, $clear = FALSE)
   $output .= panels_flexible_render_item($renderer, $settings['items']['canvas'], $content, 'canvas', 0, 0, TRUE);
 
   // Wrap the whole thing up nice and snug
@@ -243,20 +261,59 @@ function theme_build_flexible_layout($vars) {
 /**
  * Define the actual list of columns and rows for this flexible panel.
  */
-function flexible_get_regions() {
+function flexible_get_regions($settings) {
   $items = array();
-  $settings = panels_flexible_default_settings();
   foreach ($settings['items'] as $id => $item) {
     // Remove garbage values.
     if (!isset($item['type'])) {
       unset($items[$id]);
     }
-    else if ($item['type'] == 'column') {
+    else if ($item['type'] == 'region') {
       $items[$id] = $item['title'];
     }
   }
-dpm($items);
+
   return $items;
 }
 
+/**
+ * Provides the default template for new layouts.
+ */
+function layout_flexible_default_settings() {
+  // set up a default
+  $settings = array(
+    'items' => array(
+      // The 'canvas' is a special row that does not get rendered
+      // normally, but is used to contain the columns.
+      'canvas' => array(
+        'type' => 'row',
+        'contains' => 'column',
+        'children' => array('main'),
+        'parent' => NULL,
+      ),
+      'main' => array(
+        'type' => 'column',
+        'width' => 100,
+        'width_type' => '%',
+        'children' => array('main-row'),
+        'parent' => 'canvas',
+      ),
+      'main-row' => array(
+        'type' => 'row',
+        'contains' => 'region',
+        'children' => array('center'),
+        'parent' => 'main',
+      ),
+      'center' => array(
+        'type' => 'region',
+        'title' => t('Center'),
+        'width' => 100,
+        'width_type' => '%',
+        'parent' => 'main-row',
+      ),
+    ),
+  );
+
+  return $settings;
+}
 
