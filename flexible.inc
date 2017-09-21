@@ -178,7 +178,7 @@ function flexible_layout_preprocess_layout(&$vars) {
   $css = panels_flexible_render_css($renderer);
 
   // Todo: this was cached in D7 Panels.
-  drupal_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
+  backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
 
   // Also store the CSS on the display in case the live preview or something
   // needs it
@@ -220,7 +220,7 @@ function theme_panels_flexible_admin($vars) {
   $css = panels_flexible_render_css($renderer);
 
   // For the administrative view, add CSS directly to head.
-  drupal_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
+  backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
 
   if (empty($display->editing_layout)) {
     $output = '<input type="submit" id="panels-flexible-toggle-layout" class="form-submit" value ="' .
@@ -243,8 +243,8 @@ function theme_panels_flexible_admin($vars) {
   // Wrap the whole thing up nice and snug
   $output .= "</div>\n</div>\n";
 
-  drupal_add_js($layout['path'] . '/flexible-admin.js');
-  drupal_add_js(array('flexible' => array('resize' => url($handler->getUrl('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
+  backdrop_add_js($layout['path'] . '/flexible-admin.js');
+  backdrop_add_js(array('flexible' => array('resize' => url($handler->getUrl('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
   return $output;
 }
 
@@ -1387,7 +1387,7 @@ function panels_flexible_add_item_form_submit(&$form, &$form_state) {
 
   if ($item['type'] == 'region') {
     // derive the region key from the title
-    $key = preg_replace("/[^a-z0-9]/", '_', drupal_strtolower($item['title']));
+    $key = preg_replace("/[^a-z0-9]/", '_', backdrop_strtolower($item['title']));
     while (isset($settings['items'][$key])) {
       $key .= '_';
     }
