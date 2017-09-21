@@ -90,8 +90,9 @@ function flexible_layout_preprocess_layout(&$vars) {
   // Build rendrer content
   $layout_positions = array_filter($layout->positions);
   foreach ($layout_positions as $region => $blocks) {
+    $content[region] = '';
     foreach ($blocks as $uuid) {
-      $content[$region] = $handler->rendered['blocks'][$uuid];
+      $content[$region] .= $handler->rendered['blocks'][$uuid];
     }
   }
   $renderer = flexible_layout_create_renderer(FALSE, $css_id, $content, $settings['flexible'], $display, $layout, $handler);
