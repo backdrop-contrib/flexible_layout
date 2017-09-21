@@ -89,7 +89,7 @@ function panels_flexible_get_sublayouts($plugin, $layout_name) {
 function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &$display, $layout, $handler) {
   $renderer = new stdClass;
   $renderer->admin = TRUE; // this must go
-  $renderer->settings = $settings['flexible'];
+  $renderer->settings = $settings;
   $renderer->content = $content;
   $renderer->css_id = $css_id;
   $renderer->did = &$display->did;
@@ -170,7 +170,8 @@ function flexible_layout_preprocess_layout(&$vars) {
     foreach ($blocks as $uuid) {
       $content[$region] = $handler->rendered['blocks'][$uuid];
     }
-  }  $renderer = panels_flexible_create_renderer(FALSE, $css_id, $content, $settings, $display, $layout, $handler);
+  }
+  $renderer = panels_flexible_create_renderer(FALSE, $css_id, $content, $settings['flexible'], $display, $layout, $handler);
 
   // CSS must be generated because it reports back left/middle/right
   // positions.
