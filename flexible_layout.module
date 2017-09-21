@@ -32,12 +32,12 @@ function flexible_layout_menu() {
   $items['admin/structure/layouts/manage/%layout_tempstore/flexible-layout/%/add/%'] = array(
     'title' => 'Add item',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('panels_flexible_add_item_form', 4, 6, 7, 8),
+    'page arguments' => array('flexible_layout_add_item_form', 4, 6, 7, 8),
   ) + $base;
 
   $items['admin/structure/layouts/manage/%layout_tempstore/flexible-layout/%/remove/%'] = array(
     'title' => 'Remove item',
-    'page callback' => 'panels_ajax_flexible_edit_remove',
+    'page callback' => 'flexible_layout_ajax_flexible_edit_remove',
     'page arguments' => array(6, 7),
   ) + $base;
 
@@ -231,9 +231,9 @@ function theme_build_flexible_layout($vars) {
   $handler = $vars['renderer'];
 
   $output = '';
-  $renderer = panels_flexible_create_renderer(TRUE, $css_id, $content, $settings, $display, $layout, $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, $css_id, $content, $settings, $display, $layout, $handler);
 
-  $css = panels_flexible_render_css($renderer);
+  $css = flexible_layout_render_css($renderer);
 
   // For the administrative view, add CSS directly to head.
   backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
@@ -242,11 +242,11 @@ function theme_build_flexible_layout($vars) {
 
   $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside \">\n";
 
-  // panels_flexible_render_items($renderer, $list, $owner_id)
-  $content = panels_flexible_render_items($renderer, $settings['items']['canvas']['children'], $renderer->base['row'] . '-canvas');
+  // flexible_layout_render_items($renderer, $list, $owner_id)
+  $content = flexible_layout_render_items($renderer, $settings['items']['canvas']['children'], $renderer->base['row'] . '-canvas');
 
-  //panels_flexible_render_item($renderer, $item, $content, $id, $position, $max, $clear = FALSE)
-  $output .= panels_flexible_render_item($renderer, $settings['items']['canvas'], $content, 'canvas', 0, 0, TRUE);
+  //flexible_layout_render_item($renderer, $item, $content, $id, $position, $max, $clear = FALSE)
+  $output .= flexible_layout_render_item($renderer, $settings['items']['canvas'], $content, 'canvas', 0, 0, TRUE);
 
   // Wrap the whole thing up nice and snug
   $output .= "</div>\n</div>\n";

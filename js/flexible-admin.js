@@ -17,8 +17,8 @@ Backdrop.flexible.fixHeight = function() {
 Backdrop.behaviors.flexibleAdmin = {
   attach: function(context) {
     // Show/hide layout manager button
-    $('#panels-flexible-toggle-layout:not(.panels-flexible-processed)', context)
-      .addClass('panels-flexible-processed')
+    $('#flexible-layout-toggle-layout:not(.flexible-layout-processed)', context)
+      .addClass('flexible-layout-processed')
       .click(function() {
         $('.panel-flexible-admin')
           .toggleClass('panel-flexible-no-edit-layout')
@@ -35,8 +35,8 @@ Backdrop.behaviors.flexibleAdmin = {
       });
 
     // Window splitter behavior.
-    $('div.panels-flexible-splitter:not(.panels-splitter-processed)')
-      .addClass('panels-splitter-processed')
+    $('div.flexible-layout-splitter:not(.flexible-layout-splitter-processed)')
+      .addClass('flexible-layout-splitter-processed')
       .each(function() {
         Backdrop.flexible.splitters.push(new Backdrop.flexible.splitter($(this)));
       });
@@ -112,7 +112,7 @@ Backdrop.flexible.splitter = function($splitter) {
         splitter.right_padding = parseInt(splitter.parent.css('padding-right'));
         splitter.right_parent = parseInt(splitter.right.parent().css('margin-right'));
         splitter.max = splitter.right.width() + splitter.left.parent().width() -
-          (splitter.left.siblings(':not(.panels-flexible-splitter)').length * 25) - 25;
+          (splitter.left.siblings(':not(.flexible-layout-splitter)').length * 25) - 25;
       }
       else {
         splitter.right_unit = 0;
@@ -122,11 +122,11 @@ Backdrop.flexible.splitter = function($splitter) {
         splitter.left_parent = parseInt(splitter.left.parent().css('margin-left'));
         if (splitter.right_id) {
           splitter.max = splitter.left.width() + splitter.right.parent().width() -
-            (splitter.right.siblings(':not(.panels-flexible-splitter)').length * 25) - 25;
+            (splitter.right.siblings(':not(.flexible-layout-splitter)').length * 25) - 25;
         }
         else {
           var subtract = 0;
-          splitter.left.siblings(':not(.panels-flexible-splitter)').each(function() { subtract += $(this).width()});
+          splitter.left.siblings(':not(.flexible-layout-splitter)').each(function() { subtract += $(this).width()});
           splitter.max = splitter.left.parent().width() - subtract;
         }
       }
@@ -340,12 +340,12 @@ Backdrop.flexible.splitter = function($splitter) {
   };
 
   this.getSizes = function() {
-    splitter.left_width = $splitter.children('.panels-flexible-splitter-left-width').html();
-    splitter.left_scale = $splitter.children('.panels-flexible-splitter-left-scale').html();
-    splitter.left_width_type = $splitter.children('.panels-flexible-splitter-left-width-type').html();
-    splitter.right_width = $splitter.children('.panels-flexible-splitter-right-width').html();
-    splitter.right_scale = $splitter.children('.panels-flexible-splitter-right-scale').html();
-    splitter.right_width_type = $splitter.children('.panels-flexible-splitter-right-width-type').html();
+    splitter.left_width = $splitter.children('.flexible-layout-splitter-left-width').html();
+    splitter.left_scale = $splitter.children('.flexible-layout-splitter-left-scale').html();
+    splitter.left_width_type = $splitter.children('.flexible-layout-splitter-left-width-type').html();
+    splitter.right_width = $splitter.children('.flexible-layout-splitter-right-width').html();
+    splitter.right_scale = $splitter.children('.flexible-layout-splitter-right-scale').html();
+    splitter.right_width_type = $splitter.children('.flexible-layout-splitter-right-width-type').html();
   };
 
   this.putSizes = function() {
@@ -357,11 +357,11 @@ Backdrop.flexible.splitter = function($splitter) {
 
     console.log($splitter);
   splitter.splitter = $splitter;
-  splitter.left_class = $splitter.children('.panels-flexible-splitter-left').html();
-  splitter.left_id = $splitter.children('.panels-flexible-splitter-left-id').html();
+  splitter.left_class = $splitter.children('.flexible-layout-splitter-left').html();
+  splitter.left_id = $splitter.children('.flexible-layout-splitter-left-id').html();
   splitter.left = $(splitter.left_class);
-  splitter.right_class = $splitter.children('.panels-flexible-splitter-right').html();
-  splitter.right_id = $splitter.children('.panels-flexible-splitter-right-id').html();
+  splitter.right_class = $splitter.children('.flexible-layout-splitter-right').html();
+  splitter.right_id = $splitter.children('.flexible-layout-splitter-right-id').html();
   splitter.right = $(splitter.right_class);
 
   $splitter

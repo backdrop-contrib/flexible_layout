@@ -1,36 +1,36 @@
 
-#panels-dnd-main .panel-flexible-edit-layout div.panels-display .pane-add-link,
+#flexible-layout-dnd-main .panel-flexible-edit-layout div.flexible-layout-display .pane-add-link,
 .panel-flexible-edit-layout .panel-pane {
   display: none;
 }
 
-.panel-flexible-edit-layout div.panels-display h2.label {
+.panel-flexible-edit-layout div.flexible-layout-display h2.label {
   padding-right: 0;
 }
 
-.panel-flexible-edit-layout .panels-flexible-column-inside {
+.panel-flexible-edit-layout .flexible-layout-column-inside {
 /*  margin: 5px; */
   border: 1px dotted green;
 }
 
-.panels-flexible-column-inside {
+.flexible-layout-column-inside {
 /*  overflow: hidden; */
 }
 
-.panel-flexible-edit-layout .panels-flexible-column > .flexible-title {
+.panel-flexible-edit-layout .flexible-layout-column > .flexible-title {
   color: green;
 }
 
-.panels-flexible-row.row {
+.flexible-layout-row.row {
   display: block;
 }
 
-.panel-flexible-edit-layout .panels-flexible-row-inside {
+.panel-flexible-edit-layout .flexible-layout-row-inside {
   margin: 5px;
   border: 1px dotted blue;
 }
 
-.panel-flexible-edit-layout .panels-flexible-row > .flexible-title {
+.panel-flexible-edit-layout .flexible-layout-row > .flexible-title {
   color: blue;
 }
 
@@ -45,15 +45,15 @@
   margin-right: auto;
 }
 
-.panel-flexible-no-edit-layout .panels-flexible-splitter {
+.panel-flexible-no-edit-layout .flexible-layout-splitter {
   display: none;
 }
 
-.panels-flexible-splitter span {
+.flexible-layout-splitter span {
   display: none;
 }
 
-.panels-flexible-splitter {
+.flexible-layout-splitter {
   width: 11px;
   float: left;
   margin-left: -7px;
@@ -84,8 +84,8 @@
   line-height: 2em;
 }
 
-#panels-edit-display .panel-pane,
-#panels-edit-display .helperclass {
+#flexible-layout-edit-display .panel-pane,
+#flexible-layout-edit-display .helperclass {
   margin: .5em;
 }
 
