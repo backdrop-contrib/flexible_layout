@@ -177,15 +177,8 @@ function flexible_layout_preprocess_layout(&$vars) {
   // positions.
   $css = panels_flexible_render_css($renderer);
 
-  if (!empty($renderer->css_cache_name) && empty($display->editing_layout)) {
-  }
-  else {
-    // If the id is 'new' we can't reliably cache the CSS in the filesystem
-    // because the display does not truly exist, so we'll stick it in the
-    // head tag. We also do this if we've been told we're in the layout
-    // editor so that it always gets fresh CSS.
-    drupal_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
-  }
+  // Todo: this was cached in D7 Panels.
+  drupal_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
 
   // Also store the CSS on the display in case the live preview or something
   // needs it
