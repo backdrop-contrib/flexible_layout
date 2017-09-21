@@ -89,7 +89,7 @@ function panels_flexible_get_sublayouts($plugin, $layout_name) {
 function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &$display, $layout, $handler) {
   $renderer = new stdClass;
   $renderer->admin = TRUE; // this must go
-  $renderer->settings = $settings;
+  $renderer->settings = $settings['flexible'];
   $renderer->content = $content;
   $renderer->css_id = $css_id;
   $renderer->did = &$display->did;
@@ -152,37 +152,31 @@ function panels_flexible_create_renderer($admin, $css_id, $content, $settings, &
 /**
  * Draw the flexible layout.
  */
-function theme_panels_flexible($vars) {
-  $css_id = $vars['css_id'];
-  $content = $vars['content'];
+/**
+ * Draw the flexible layout.
+ */
+function flexible_layout_preprocess_layout(&$vars) {
+  if ($vars['theme_hook_original'] == 'layout__flexible_template') {  $css_id = $vars['css_id'];
+  $content = array();
   $settings = $vars['settings'];
   $display = $vars['display'];
   $layout = $vars['layout'];
   $handler = $vars['renderer'];
 
-  panels_flexible_convert_settings($settings, $layout);
 
-  $renderer = panels_flexible_create_renderer(FALSE, $css_id, $content, $settings, $display, $layout, $handler);
+  // Build rendrer content
+  $layout_positions = array_filter($layout->positions);
+  foreach ($layout_positions as $region => $blocks) {
+    foreach ($blocks as $uuid) {
+      $content[$region] = $handler->rendered['blocks'][$uuid];
+    }
+  }  $renderer = panels_flexible_create_renderer(FALSE, $css_id, $content, $settings, $display, $layout, $handler);
 
   // CSS must be generated because it reports back left/middle/right
   // positions.
   $css = panels_flexible_render_css($renderer);
 
   if (!empty($renderer->css_cache_name) && empty($display->editing_layout)) {
-    ctools_include('css');
-    // Generate an id based upon rows + columns:
-    $filename = ctools_css_retrieve($renderer->css_cache_name);
-    if (!$filename) {
-      $filename = ctools_css_store($renderer->css_cache_name, $css, FALSE);
-    }
-
-    // Give the CSS to the renderer to put where it wants.
-    if ($handler) {
-      $handler->add_css($filename, 'module', 'all', FALSE);
-    }
-    else {
-      drupal_add_css($filename);
-    }
   }
   else {
     // If the id is 'new' we can't reliably cache the CSS in the filesystem
@@ -199,12 +193,14 @@ function theme_panels_flexible($vars) {
   $output = "<div class=\"panel-flexible " . $renderer->base['canvas'] . " clearfix\" $renderer->id_str>\n";
   $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside\">\n";
 
-  $output .= panels_flexible_render_items($renderer, $settings['items']['canvas']['children'], $renderer->base['canvas']);
+  $output .= panels_flexible_render_items($renderer, $settings['flexible']['items']['canvas']['children'], $renderer->base['canvas']);
 
   // Wrap the whole thing up nice and snug
   $output .= "</div>\n</div>\n";
+  $vars['output'] = $output;
 
-  return $output;
+  }
+  //return $output;
 }
 
 /**
