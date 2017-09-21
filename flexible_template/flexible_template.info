@@ -15,8 +15,5 @@ preview = flexible_template.png
 ; Include the Bootstrap4 Grid System
 libraries[] = bootstrap4-gs
 
-; Include file for special preprocessing of this layout's variables.
-file = flexible_template.php
-
 ; Default stylesheets for this layout
 stylesheets[all][] = ../flexible_template.css
