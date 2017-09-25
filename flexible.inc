@@ -9,7 +9,7 @@
  *
  * @todo Convert the functions to methods and make this properly OO.
  */
-function flexible_layout_create_renderer($admin, $css_id, $content, $settings, &$display, $layout, $handler) {
+function flexible_layout_create_renderer($admin, $css_id, $content, $settings, $layout, $handler) {
   $renderer = new stdClass;
   $renderer->admin = TRUE; // this must go
   $renderer->settings = $settings;
@@ -28,7 +28,7 @@ function flexible_layout_create_renderer($admin, $css_id, $content, $settings, &
   $renderer->handler = $handler;
 
   // Set up basic classes for all of our components.
-  $renderer->name                 = !empty($layout->layout_template) ? $layout->layout_template : $display->did;
+  $renderer->name                 = !empty($layout->layout_template) ? $layout->layout_template : '';
   $renderer->base_class           = $renderer->name;
   $renderer->item_class['column'] = 'flexible-layout-column';
   $renderer->item_class['row']    = 'flexible-layout-row';
@@ -82,7 +82,6 @@ function flexible_layout_preprocess_layout(&$vars) {
   $vars['output'] = '';
   if ($vars['layout_info']['name'] == 'flexible_template' && empty($vars['admin'])) {
     $content = array();
-    $display = array();
     $settings = $vars['settings'];
     $layout = $vars['layout'];
     $handler = $vars['renderer'];
@@ -95,7 +94,7 @@ function flexible_layout_preprocess_layout(&$vars) {
         $content[$region] .= $handler->rendered['blocks'][$uuid];
       }
     }
-    $renderer = flexible_layout_create_renderer(FALSE, '', $content, $settings['flexible'], $display, $layout, $handler);
+    $renderer = flexible_layout_create_renderer(FALSE, '', $content, $settings['flexible'], $layout, $handler);
 
     // CSS must be generated because it reports back left/middle/right
     // positions.
@@ -671,8 +670,8 @@ function flexible_layout_ajax_flexible_edit_ajax_settings($form, $form_state) {
   $handler = $form_state['handler'];
   $id = $form_state['id'];
   
-  $css_id = isset($handler->display->css_id) ? $handler->display->css_id : '';
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $handler->display, $handler->plugins['layout'], $handler);
+  $css_id = '';
+  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $handler->plugins['layout'], $handler);
 
   // If the item is a region, replace the title.
   $class = $renderer->base[$item['type']] . '-' . $id;
@@ -960,9 +959,9 @@ function flexible_layout_ajax_flexible_edit_add($form, $form_state) {
   $settings = $form_state['settings'];
   $layout = $form_state['layout'];
 
-  $css_id = isset($handler->display->css_id) ? $handler->display->css_id : '';
+  $css_id = '';
   // Create a renderer object so we can render our new stuff.
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $handler->display, $layout, $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $layout, $handler);
 
   $content = '';
   if ($item['type'] == 'region') {
@@ -1314,9 +1313,9 @@ function flexible_layout_ajax_flexible_edit_remove($layout, $renderer_name, $id)
   }
 
   $item = &$settings['items'][$id];
-  $css_id = isset($handler->display->css_id) ? $handler->display->css_id : '';
+  $css_id = '';
   // Create a renderer object so we can render our new stuff.
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $handler->display, $layout, $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $layout, $handler);
 
 
   $siblings = &$settings['items'][$item['parent']]['children'];
