@@ -9,12 +9,11 @@
  *
  * @todo Convert the functions to methods and make this properly OO.
  */
-function flexible_layout_create_renderer($admin, $css_id, $content, $settings, $layout, $handler) {
+function flexible_layout_create_renderer($admin, $content, $settings, $layout, $handler) {
   $renderer = new stdClass;
   $renderer->admin = TRUE; // this must go
   $renderer->settings = $settings;
   $renderer->content = $content;
-  $renderer->css_id = $css_id;
   $renderer->did = '';
   if ($admin) {
     // always scale in admin mode.
@@ -23,7 +22,7 @@ function flexible_layout_create_renderer($admin, $css_id, $content, $settings, $
   else {
     $renderer->scale_base = !empty($settings['items']['canvas']['no_scale']) ? 100.0 : 99.0;
   }
-  $renderer->id_str = $css_id ? 'id="' . $css_id . '"' : '';
+  $renderer->id_str = '';
   $renderer->admin = $admin;
   $renderer->handler = $handler;
 
@@ -94,7 +93,7 @@ function flexible_layout_preprocess_layout(&$vars) {
         $content[$region] .= $handler->rendered['blocks'][$uuid];
       }
     }
-    $renderer = flexible_layout_create_renderer(FALSE, '', $content, $settings['flexible'], $layout, $handler);
+    $renderer = flexible_layout_create_renderer(FALSE, $content, $settings['flexible'], $layout, $handler);
 
     // CSS must be generated because it reports back left/middle/right
     // positions.
@@ -670,8 +669,7 @@ function flexible_layout_ajax_flexible_edit_ajax_settings($form, $form_state) {
   $handler = $form_state['handler'];
   $id = $form_state['id'];
   
-  $css_id = '';
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $handler->plugins['layout'], $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, array(), $settings, $handler->plugins['layout'], $handler);
 
   // If the item is a region, replace the title.
   $class = $renderer->base[$item['type']] . '-' . $id;
@@ -959,9 +957,8 @@ function flexible_layout_ajax_flexible_edit_add($form, $form_state) {
   $settings = $form_state['settings'];
   $layout = $form_state['layout'];
 
-  $css_id = '';
   // Create a renderer object so we can render our new stuff.
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $layout, $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, array(), $settings, $layout, $handler);
 
   $content = '';
   if ($item['type'] == 'region') {
@@ -1313,9 +1310,8 @@ function flexible_layout_ajax_flexible_edit_remove($layout, $renderer_name, $id)
   }
 
   $item = &$settings['items'][$id];
-  $css_id = '';
   // Create a renderer object so we can render our new stuff.
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $layout, $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, array(), $settings, $layout, $handler);
 
 
   $siblings = &$settings['items'][$item['parent']]['children'];

@@ -223,14 +223,13 @@ function flexible_layout_theme() {
  * Builds the flexible layout block add page.
  */
 function theme_build_flexible_layout($vars) {
-  $css_id = '';
   $content = $vars['content'];
   $settings = $vars['layout']->settings['flexible'];
   $layout = $vars['layout'];
   $handler = $vars['renderer'];
 
   $output = '';
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, $content, $settings, $layout, $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, $content, $settings, $layout, $handler);
 
   $css = flexible_layout_render_css($renderer);
 
