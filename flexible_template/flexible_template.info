@@ -1,5 +1,5 @@
 type = layout
-name = Flexible template Hero
+name = Flexible template
 version = BACKDROP_VERSION
 backdrop = 1.x
 

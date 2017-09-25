@@ -1,5 +1,168 @@
 <?php
 
+/**
+ * Define the actual list of columns and rows for this flexible panel.
+ */
+function flexible_layout_get_regions($settings) {
+  $items = array();
+  foreach ($settings['items'] as $id => $item) {
+    // Remove garbage values.
+    if (!isset($item['type'])) {
+      unset($items[$id]);
+    }
+    else if ($item['type'] == 'region') {
+      $items[$id] = $item['title'];
+    }
+  }
+
+  return $items;
+}
+
+/**
+ * Provides the default template for new layouts.
+ */
+function flexible_layout_default_settings() {
+  // set up a default
+  $settings = array(
+    'items' => array(
+      // The 'canvas' is a special row that does not get rendered
+      // normally, but is used to contain the columns.
+      'canvas' => array(
+        'type' => 'row',
+        'contains' => 'column',
+        'children' => array('main'),
+        'parent' => NULL,
+      ),
+      'main' => array(
+        'type' => 'column',
+        'width' => 100,
+        'width_type' => '%',
+        'children' => array('main-row'),
+        'parent' => 'canvas',
+      ),
+      'main-row' => array(
+        'type' => 'row',
+        'contains' => 'region',
+        'children' => array('center'),
+        'parent' => 'main',
+      ),
+      'center' => array(
+        'type' => 'region',
+        'title' => t('Center'),
+        'width' => 100,
+        'width_type' => '%',
+        'parent' => 'main-row',
+      ),
+    ),
+  );
+
+  return $settings;
+}
+
+/**
+ * Menu callback; Display a list of blocks to be added to a layout.
+ *
+ * This function is identical to the core function layout_block_add_page()
+ * except the core function makes a call to layout_get_layout_template_info()
+ * to ensure that the region into which the block is being added exists in the
+ * template. In this case though, our regions are being created dynamically and
+ * don't exist in the template, which would cause the core function to fail.
+ */
+function flexible_layout_block_add_page(Layout $layout, $renderer_name, $region_name, $block_key = NULL) {
+  /* @var Layout $layout */
+  $form_state['layout'] = $layout;
+
+  // If a block has been selected, return the block configuration form.
+  if (isset($block_key)) {
+    list($module, $delta) = explode(':', $block_key);
+    $block_info = layout_get_block_info($module, $delta);
+    if (!$block_info) {
+      return MENU_NOT_FOUND;
+    }
+
+    $block = layout_create_handler('block', $block_key);
+    form_load_include($form_state, 'inc', 'layout', 'layout.admin');
+    return backdrop_get_form('layout_block_configure_form', $layout, $block, $renderer_name, $region_name);
+  }
+
+  $blocks = layout_get_block_info();
+
+  // Assemble all blocks into a single list and sort.
+  $block_list = array();
+  foreach ($blocks as $module => $module_blocks) {
+    if (empty($module_blocks)) {
+      continue;
+    }
+    foreach ($module_blocks as $delta => $block_info) {
+      /* @var Block $parent_block */
+      $parent_block = layout_create_handler('block', $module . ':' . $delta);
+      $children = $parent_block->getChildren();
+      if (is_array($children)) {
+        foreach ($children as $child_id => $child_info) {
+          // Skip blocks that don't have context requirements met.
+          $required_contexts = isset($child_info['required contexts']) ? $child_info['required contexts'] : array();
+          if ($layout->hasContexts($required_contexts)) {
+            $block_list[$module . ':' . $delta . ':' . $child_id] = $child_info;
+          }
+        }
+      }
+      else {
+        $required_contexts = isset($block_info['required contexts']) ? $block_info['required contexts'] : array();
+        // Skip blocks that don't have context requirements met.
+        if ($layout->hasContexts($required_contexts)) {
+          $block_list[$module . ':' . $delta] = $block_info;
+        }
+      }
+    }
+  }
+  backdrop_sort($block_list, array('info' => SORT_STRING));
+
+  $output['search'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Search',
+    '#attributes' => array(
+      'id' => array('layout-block-list-search'),
+    ),
+    // Hide the search if no JavaScript is available.
+    '#wrapper_attributes' => array(
+      'class' => array('js-show'),
+    ),
+  );
+  $output['block_list'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('layout-block-list'),
+    ),
+  );
+
+  $output['block_list']['block_list_inner'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('layout-block-list-wrapper'),
+    ),
+  );
+
+  foreach ($block_list as $key => $block_info) {
+    $output['block_list']['block_list_inner'][$key] = array(
+      '#type' => 'item',
+      '#markup' => l(
+        $block_info['info'],
+        'admin/structure/layouts/manage/' . $layout->name . '/add-flexible-block/' . $renderer_name . '/' . $region_name . '/' . $key,
+        array(
+          'attributes' => array(
+            'class' => array('use-ajax block-item'),
+            'data-dialog' => TRUE,
+            'data-dialog-options' => json_encode(array('dialogClass' => 'layout-dialog')),
+          )
+        )
+      ),
+      '#description' => isset($block_info['description']) ? $block_info['description'] : NULL,
+      '#wrapper_attributes' => array('class' => array('layout-block-add-row'))
+    );
+  }
+
+  return $output;
+}
 
 /**
  * Create a renderer object.
@@ -69,49 +232,6 @@ function flexible_layout_create_renderer($admin, $content, $settings, $layout, $
     }
   }
   return $renderer;
-}
-
-/**
- * Draw the flexible layout.
- */
-/**
- * Draw the flexible layout.
- */
-function flexible_layout_preprocess_layout(&$vars) {
-  $vars['output'] = '';
-  if ($vars['layout_info']['name'] == 'flexible_template' && empty($vars['admin'])) {
-    $content = array();
-    $settings = $vars['settings'];
-    $layout = $vars['layout'];
-    $handler = $vars['renderer'];
-
-    // Build rendrer content
-    $layout_positions = array_filter($layout->positions);
-    foreach ($layout_positions as $region => $blocks) {
-      $content[$region] = '';
-      foreach ($blocks as $uuid) {
-        $content[$region] .= $handler->rendered['blocks'][$uuid];
-      }
-    }
-    $renderer = flexible_layout_create_renderer(FALSE, $content, $settings['flexible'], $layout, $handler);
-
-    // CSS must be generated because it reports back left/middle/right
-    // positions.
-    $css = flexible_layout_render_css($renderer);
-
-    // Todo: this was cached in D7 Panels.
-    backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
-
-    $output = "<div class=\"panel-flexible " . $renderer->base['canvas'] . " clearfix\" $renderer->id_str>\n";
-    $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside\">\n";
-
-    $output .= flexible_layout_render_items($renderer, $settings['flexible']['items']['canvas']['children'], $renderer->base['canvas']);
-
-    // Wrap the whole thing up nice and snug
-    $output .= "</div>\n</div>\n";
-    $vars['output'] = $output;
-
-  }
 }
 
 /**

@@ -16,7 +16,7 @@ class FlexibleLayoutRendererEditor extends LayoutRendererEditor {
     if (!isset($this->layout_info['regions']['title'])) {
       $this->layout_info['regions']['title'] = t('Page title');
     }
-    $regions = flexible_get_regions($layout->settings['flexible']);
+    $regions = flexible_layout_get_regions($layout->settings['flexible']);
 
     foreach ($regions as $key => $region) {
       $this->layout_info['regions'][$key] = $region;
@@ -51,7 +51,7 @@ class FlexibleLayoutRendererEditor extends LayoutRendererEditor {
 
     module_load_include('inc', 'layout', 'layout.theme');
 
-    $this->rendered['layout'] = theme('build_flexible_layout', array('content' => $this->rendered['regions'], 'settings' => $this->layout->settings, 'layout' => $this->layout, 'renderer' => $this));
+    $this->rendered['layout'] = theme('flexible_layout_admin', array('content' => $this->rendered['regions'], 'settings' => $this->layout->settings, 'layout' => $this->layout, 'renderer' => $this));
     return $this->prefix . $this->rendered['layout'] . $this->suffix;
   }
 
