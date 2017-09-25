@@ -79,46 +79,47 @@ function flexible_layout_create_renderer($admin, $css_id, $content, $settings, &
  * Draw the flexible layout.
  */
 function flexible_layout_preprocess_layout(&$vars) {
-  if ($vars['theme_hook_original'] == 'layout__flexible_template') {  $css_id = $vars['css_id'];
-  $content = array();
-  $settings = $vars['settings'];
-  $display = $vars['display'];
-  $layout = $vars['layout'];
-  $handler = $vars['renderer'];
+  if ($vars['layout_info']['name'] == 'flexible_template') {
+    if ($vars['theme_hook_original'] == 'layout__flexible_template') {  $css_id = $vars['css_id'];
+    $content = array();
+    $settings = $vars['settings'];
+    $display = $vars['display'];
+    $layout = $vars['layout'];
+    $handler = $vars['renderer'];
 
 
-  // Build rendrer content
-  $layout_positions = array_filter($layout->positions);
-  foreach ($layout_positions as $region => $blocks) {
-    $content[region] = '';
-    foreach ($blocks as $uuid) {
-      $content[$region] .= $handler->rendered['blocks'][$uuid];
+    // Build rendrer content
+    $layout_positions = array_filter($layout->positions);
+    foreach ($layout_positions as $region => $blocks) {
+      $content[region] = '';
+      foreach ($blocks as $uuid) {
+        $content[$region] .= $handler->rendered['blocks'][$uuid];
+      }
+    }
+    $renderer = flexible_layout_create_renderer(FALSE, $css_id, $content, $settings['flexible'], $display, $layout, $handler);
+
+    // CSS must be generated because it reports back left/middle/right
+    // positions.
+    $css = flexible_layout_render_css($renderer);
+
+    // Todo: this was cached in D7 Panels.
+    backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
+
+    // Also store the CSS on the display in case the live preview or something
+    // needs it
+    $display->add_css = $css;
+
+    $output = "<div class=\"panel-flexible " . $renderer->base['canvas'] . " clearfix\" $renderer->id_str>\n";
+    $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside\">\n";
+
+    $output .= flexible_layout_render_items($renderer, $settings['flexible']['items']['canvas']['children'], $renderer->base['canvas']);
+
+    // Wrap the whole thing up nice and snug
+    $output .= "</div>\n</div>\n";
+    $vars['output'] = $output;
+
     }
   }
-  $renderer = flexible_layout_create_renderer(FALSE, $css_id, $content, $settings['flexible'], $display, $layout, $handler);
-
-  // CSS must be generated because it reports back left/middle/right
-  // positions.
-  $css = flexible_layout_render_css($renderer);
-
-  // Todo: this was cached in D7 Panels.
-  backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
-
-  // Also store the CSS on the display in case the live preview or something
-  // needs it
-  $display->add_css = $css;
-
-  $output = "<div class=\"panel-flexible " . $renderer->base['canvas'] . " clearfix\" $renderer->id_str>\n";
-  $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside\">\n";
-
-  $output .= flexible_layout_render_items($renderer, $settings['flexible']['items']['canvas']['children'], $renderer->base['canvas']);
-
-  // Wrap the whole thing up nice and snug
-  $output .= "</div>\n</div>\n";
-  $vars['output'] = $output;
-
-  }
-  //return $output;
 }
 
 /**
