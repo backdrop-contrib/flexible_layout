@@ -15,7 +15,7 @@ function flexible_layout_create_renderer($admin, $css_id, $content, $settings, &
   $renderer->settings = $settings;
   $renderer->content = $content;
   $renderer->css_id = $css_id;
-  $renderer->did = &$display->did;
+  $renderer->did = '';
   if ($admin) {
     // always scale in admin mode.
     $renderer->scale_base = 99.0;
@@ -79,24 +79,23 @@ function flexible_layout_create_renderer($admin, $css_id, $content, $settings, &
  * Draw the flexible layout.
  */
 function flexible_layout_preprocess_layout(&$vars) {
-  if ($vars['layout_info']['name'] == 'flexible_template') {
-    if ($vars['theme_hook_original'] == 'layout__flexible_template') {  $css_id = $vars['css_id'];
+  $vars['output'] = '';
+  if ($vars['layout_info']['name'] == 'flexible_template' && empty($vars['admin'])) {
     $content = array();
+    $display = array();
     $settings = $vars['settings'];
-    $display = $vars['display'];
     $layout = $vars['layout'];
     $handler = $vars['renderer'];
-
 
     // Build rendrer content
     $layout_positions = array_filter($layout->positions);
     foreach ($layout_positions as $region => $blocks) {
-      $content[region] = '';
+      $content[$region] = '';
       foreach ($blocks as $uuid) {
         $content[$region] .= $handler->rendered['blocks'][$uuid];
       }
     }
-    $renderer = flexible_layout_create_renderer(FALSE, $css_id, $content, $settings['flexible'], $display, $layout, $handler);
+    $renderer = flexible_layout_create_renderer(FALSE, '', $content, $settings['flexible'], $display, $layout, $handler);
 
     // CSS must be generated because it reports back left/middle/right
     // positions.
@@ -104,10 +103,6 @@ function flexible_layout_preprocess_layout(&$vars) {
 
     // Todo: this was cached in D7 Panels.
     backdrop_add_css($css, array('type' => 'inline', 'preprocess' => FALSE));
-
-    // Also store the CSS on the display in case the live preview or something
-    // needs it
-    $display->add_css = $css;
 
     $output = "<div class=\"panel-flexible " . $renderer->base['canvas'] . " clearfix\" $renderer->id_str>\n";
     $output .= "<div class=\"panel-flexible-inside " . $renderer->base['canvas'] . "-inside\">\n";
@@ -118,7 +113,6 @@ function flexible_layout_preprocess_layout(&$vars) {
     $output .= "</div>\n</div>\n";
     $vars['output'] = $output;
 
-    }
   }
 }
 
