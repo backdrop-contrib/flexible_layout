@@ -413,8 +413,7 @@ function flexible_layout_render_item_links($renderer, $id, $item) {
       'href' => $renderer->handler->getUrl('flexible-layout', 'remove', $id),
       'attributes' => array(
         'class' => array('use-ajax'),
-        'data-dialog' => TRUE,
-        'data-dialog-options' => json_encode(array('dialogClass' => 'layout-dialog')),
+        'data-dialog' => FALSE,
       ),
     );
   }
@@ -1310,8 +1309,8 @@ function flexible_layout_add_item_form_submit(&$form, &$form_state) {
  * AJAX responder to remove an existing row, column or region from a flexible
  * layout.
  */
-function flexible_layout_ajax_flexible_edit_remove($renderer_name, $id) {
-  $settings = layout_flexible_default_settings();
+function flexible_layout_ajax_flexible_edit_remove($layout, $renderer_name, $id) {
+  $settings = $layout->settings['flexible'];
   $handler = layout_create_renderer($renderer_name, $layout);
   $commands = array();
 
@@ -1322,7 +1321,7 @@ function flexible_layout_ajax_flexible_edit_remove($renderer_name, $id) {
   $item = &$settings['items'][$id];
   $css_id = isset($handler->display->css_id) ? $handler->display->css_id : '';
   // Create a renderer object so we can render our new stuff.
-  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $handler->display, $handler->plugins['layout'], $handler);
+  $renderer = flexible_layout_create_renderer(TRUE, $css_id, array(), $settings, $handler->display, $layout, $handler);
 
 
   $siblings = &$settings['items'][$item['parent']]['children'];
@@ -1361,7 +1360,9 @@ function flexible_layout_ajax_flexible_edit_remove($renderer_name, $id) {
   unset($settings['items'][$id]);
 
   // Save our new state.
-  // panels_edit_cache_set($handler->cache);
+  $layout->settings['flexible'] = $settings;
+  layout_set_layout_tempstore($layout);
+
   $class = $renderer->base[$item['type']] . '-' . $id;
   $commands = array();
 

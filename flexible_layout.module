@@ -38,7 +38,7 @@ function flexible_layout_menu() {
   $items['admin/structure/layouts/manage/%layout_tempstore/flexible-layout/%/remove/%'] = array(
     'title' => 'Remove item',
     'page callback' => 'flexible_layout_ajax_flexible_edit_remove',
-    'page arguments' => array(6, 7),
+    'page arguments' => array(4, 6, 8),
   ) + $base;
 
   return $items;
