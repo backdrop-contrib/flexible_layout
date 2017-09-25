@@ -894,7 +894,7 @@ function flexible_layout_edit_settings($form, &$form_state, Layout $layout, $ren
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save configurationnnn'),
+    '#value' => t('Save configuration'),
     '#attributes' => array('class' => array('layout-title-button')),
     '#submit' => array(
       'flexible_layout_config_item_form_submit',
@@ -1209,7 +1209,7 @@ function flexible_layout_add_item_form($form, &$form_state, Layout $layout, $ren
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save configurationnnn'),
+    '#value' => t('Save configuration'),
     '#attributes' => array('class' => array('layout-title-button')),
     '#submit' => array(
       'flexible_layout_add_item_form_submit',
@@ -1404,10 +1404,9 @@ function flexible_layout_ajax_flexible_edit_remove($layout, $renderer_name, $id)
  * AJAX responder to store resize information when the user adjusts the
  * splitter.
  */
-function flexible_layout_ajax_flexible_edit_resize($handler) {
-  ctools_include('ajax');
-  $settings = &$handler->display->layout_settings;
-  flexible_layout_convert_settings($settings, $handler->plugins['layout']);
+function flexible_layout_ajax_flexible_edit_resize($layout, $renderer_name) {
+  $settings = $layout->settings['flexible'];
+  $handler = layout_create_renderer($renderer_name, $layout);
 
   $settings['items'][$_POST['left']]['width'] = $_POST['left_width'];
   if (!empty($_POST['right']) && $_POST['right'] != $_POST['left']) {
@@ -1415,7 +1414,11 @@ function flexible_layout_ajax_flexible_edit_resize($handler) {
   }
 
   // Save our new state.
-  // panels_edit_cache_set($handler->cache);
+  $layout->settings['flexible'] = $settings;
+  layout_set_layout_tempstore($layout);
 
-  $handler->commands = array('ok');
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array('ok'),
+  );
 }

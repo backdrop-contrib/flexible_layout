@@ -41,6 +41,12 @@ function flexible_layout_menu() {
     'page arguments' => array(4, 6, 8),
   ) + $base;
 
+  $items['admin/structure/layouts/manage/%layout_tempstore/flexible-layout/%/resize'] = array(
+    'title' => 'Remove item',
+    'page callback' => 'flexible_layout_ajax_flexible_edit_resize',
+    'page arguments' => array(4, 6),
+  ) + $base;
+
   return $items;
 }
 
@@ -252,7 +258,8 @@ function theme_build_flexible_layout($vars) {
   backdrop_add_css(backdrop_get_path('module', 'flexible_layout') . '/css/flexible-admin.css');
   backdrop_add_css(backdrop_get_path('module', 'flexible_layout') . '/css/flexible.css');
   backdrop_add_js(backdrop_get_path('module', 'flexible_layout') . '/js/flexible-admin.js');
-  backdrop_add_js(array('flexible' => array('resize' => url($handler->getUrl('layout', 'resize'), array('absolute' => TRUE)))), 'setting');
+  backdrop_add_js(array('flexible' => array('resize' => url($handler->getUrl('flexible-layout', 'resize'), array('absolute' => TRUE)))), 'setting');
+
   return $output;
 }
 
