@@ -485,11 +485,10 @@ function flexible_layout_render_css_group($renderer, $list, $owner_id, $type, $i
 
   flexible_layout_get_css_group($css, $renderer, $list, $owner_id, $type, $id);
 
-  return ctools_css_assemble($css);
-  // return '';
+  return flexible_layout_css_assemble($css);
 }
 
-function ctools_css_assemble($css_data) {
+function flexible_layout_css_assemble($css_data) {
   // Initialize the output.
   $css = '';
   // Iterate through all the statements.
