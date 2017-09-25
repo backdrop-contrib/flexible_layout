@@ -972,9 +972,9 @@ function flexible_layout_ajax_flexible_edit_add($form, $form_state) {
 
   $content = '';
   if ($item['type'] == 'region') {
-    $handler->plugins['layout']['regions'][$form_state['key']] = $item['title'];
+    $handler->layout_info['regions'][$form_state['key']] = $item['title'];
 
-    $content = $handler->render_region($form_state['key'], array());
+    $content = $handler->renderRegion($form_state['key'], array());
 
     // Manually add the hidden field that our region uses to store pane info.
     $content .= '<input type="hidden" name="panel[pane][' .
