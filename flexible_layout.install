@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Flexible Layout module.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function flexible_layout_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break during installation.
+  $t = get_t();
+
+  if ($phase == 'runtime') {
+    if (!layout_get_layout_template_info('flexible_template')) {
+      $requirements['flexible_template_missing'] = array(
+        'title' => $t('Flexible layout'),
+        'value' => $t('Please download and install <a href="@url">Flexible Template</a> layout template to enable functionality.', array('@url' => url('https://github.com/backdrop-contrib/flexible_template'))),
+        'severity' => REQUIREMENT_ERROR
+      );
+    }
+  }
+
+  return $requirements;
+}
+/**
+ * Implements hook_enable().
+ */
+function flexible_layout_enable() {
+  if (!layout_get_layout_template_info('flexible_template')) {
+    backdrop_set_message(t('This module requires the <a href="@url">Flexible Template</a> layout template for generating configurable regions.', array('@url' => url('https://github.com/backdrop-contrib/flexible_template'))), 'warning');
+  }
+}
