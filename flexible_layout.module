@@ -51,39 +51,9 @@ function flexible_layout_menu() {
 }
 
 /**
- * Implements hook_layout_renderer_info().
- */
-function flexible_layout_layout_renderer_info() {
-  $info['flexible'] = array(
-    'class' => 'FlexibleLayoutRenderer',
-  );
-  $info['flexible_editor'] = array(
-    'class' => 'FlexibleLayoutRendererEditor',
-  );
-  return $info;
-}
-
-/**
- * Implements hook_autoload_info().
- */
-function flexible_layout_autoload_info() {
-  return array(
-    'FlexibleLayoutRenderer' => 'renderers/flexible_renderer_standard.inc',
-    'FlexibleLayoutRendererEditor' => 'renderers/flexible_renderer_editor.inc',
-  );
-}
-
-
-function flexible_layout_layout_presave($layout) {
-  if ($layout->layout_template == 'flexible_template' && empty($layout->settings['flexible'])) {
-    $layout->settings['flexible'] = flexible_layout_default_settings();
-  }
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  *
- * Used here to override the default layout renderer.
+ * Used here to override the default layout editor renderer.
  */
 function flexible_layout_form_layout_content_form_alter(&$form, &$form_state, $form_id) {
   $layout = $form_state['layout'];
@@ -106,6 +76,111 @@ function flexible_layout_form_layout_content_form_alter(&$form, &$form_state, $f
       );
     }
   }
+}
+
+/**
+ * Menu callback; Display a list of blocks to be added to a layout.
+ *
+ * This function is identical to the core function layout_block_add_page()
+ * except the core function makes a call to layout_get_layout_template_info()
+ * to ensure that the region into which the block is being added exists in the
+ * template. In this case though, our regions are being created dynamically and
+ * don't exist in the template, which would cause the core function to fail.
+ */
+function flexible_layout_block_add_page(Layout $layout, $renderer_name, $region_name, $block_key = NULL) {
+  /* @var Layout $layout */
+  $form_state['layout'] = $layout;
+
+  // If a block has been selected, return the block configuration form.
+  if (isset($block_key)) {
+    list($module, $delta) = explode(':', $block_key);
+    $block_info = layout_get_block_info($module, $delta);
+    if (!$block_info) {
+      return MENU_NOT_FOUND;
+    }
+
+    $block = layout_create_handler('block', $block_key);
+    form_load_include($form_state, 'inc', 'layout', 'layout.admin');
+    return backdrop_get_form('layout_block_configure_form', $layout, $block, $renderer_name, $region_name);
+  }
+
+  $blocks = layout_get_block_info();
+
+  // Assemble all blocks into a single list and sort.
+  $block_list = array();
+  foreach ($blocks as $module => $module_blocks) {
+    if (empty($module_blocks)) {
+      continue;
+    }
+    foreach ($module_blocks as $delta => $block_info) {
+      /* @var Block $parent_block */
+      $parent_block = layout_create_handler('block', $module . ':' . $delta);
+      $children = $parent_block->getChildren();
+      if (is_array($children)) {
+        foreach ($children as $child_id => $child_info) {
+          // Skip blocks that don't have context requirements met.
+          $required_contexts = isset($child_info['required contexts']) ? $child_info['required contexts'] : array();
+          if ($layout->hasContexts($required_contexts)) {
+            $block_list[$module . ':' . $delta . ':' . $child_id] = $child_info;
+          }
+        }
+      }
+      else {
+        $required_contexts = isset($block_info['required contexts']) ? $block_info['required contexts'] : array();
+        // Skip blocks that don't have context requirements met.
+        if ($layout->hasContexts($required_contexts)) {
+          $block_list[$module . ':' . $delta] = $block_info;
+        }
+      }
+    }
+  }
+  backdrop_sort($block_list, array('info' => SORT_STRING));
+
+  $output['search'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Search',
+    '#attributes' => array(
+      'id' => array('layout-block-list-search'),
+    ),
+    // Hide the search if no JavaScript is available.
+    '#wrapper_attributes' => array(
+      'class' => array('js-show'),
+    ),
+  );
+  $output['block_list'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('layout-block-list'),
+    ),
+  );
+
+  $output['block_list']['block_list_inner'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('layout-block-list-wrapper'),
+    ),
+  );
+
+  foreach ($block_list as $key => $block_info) {
+    $output['block_list']['block_list_inner'][$key] = array(
+      '#type' => 'item',
+      '#markup' => l(
+        $block_info['info'],
+        'admin/structure/layouts/manage/' . $layout->name . '/add-flexible-block/' . $renderer_name . '/' . $region_name . '/' . $key,
+        array(
+          'attributes' => array(
+            'class' => array('use-ajax block-item'),
+            'data-dialog' => TRUE,
+            'data-dialog-options' => json_encode(array('dialogClass' => 'layout-dialog')),
+          )
+        )
+      ),
+      '#description' => isset($block_info['description']) ? $block_info['description'] : NULL,
+      '#wrapper_attributes' => array('class' => array('layout-block-add-row'))
+    );
+  }
+
+  return $output;
 }
 
 /**
@@ -195,5 +270,35 @@ function flexible_layout_preprocess_layout(&$vars) {
     $output .= "</div>\n</div>\n";
     $vars['output'] = $output;
 
+  }
+}
+
+/**
+ * Implements hook_layout_renderer_info().
+ */
+function flexible_layout_layout_renderer_info() {
+  $info['flexible'] = array(
+    'class' => 'FlexibleLayoutRenderer',
+  );
+  $info['flexible_editor'] = array(
+    'class' => 'FlexibleLayoutRendererEditor',
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function flexible_layout_autoload_info() {
+  return array(
+    'FlexibleLayoutRenderer' => 'renderers/flexible_renderer_standard.inc',
+    'FlexibleLayoutRendererEditor' => 'renderers/flexible_renderer_editor.inc',
+  );
+}
+
+
+function flexible_layout_layout_presave($layout) {
+  if ($layout->layout_template == 'flexible_template' && empty($layout->settings['flexible'])) {
+    $layout->settings['flexible'] = flexible_layout_default_settings();
   }
 }
