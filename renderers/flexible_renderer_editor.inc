@@ -16,7 +16,11 @@ class FlexibleLayoutRendererEditor extends LayoutRendererEditor {
     if (!isset($this->layout_info['regions']['title'])) {
       $this->layout_info['regions']['title'] = t('Page title');
     }
-    $regions = flexible_layout_get_regions($layout->settings['flexible']);
+
+    $regions = array();
+    if (!empty($layout->settings['flexible'])) {
+      $regions = flexible_layout_get_regions($layout->settings['flexible']);
+    }
 
     foreach ($regions as $key => $region) {
       $this->layout_info['regions'][$key] = $region;
