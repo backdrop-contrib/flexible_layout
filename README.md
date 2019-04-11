@@ -1,7 +1,7 @@
 Flexible template
 ============
 
-Provides a layout with configurable rows, cloumns and regions.
+Provides a layout with configurable rows, columns and regions.
 
 
 Installation
@@ -9,7 +9,7 @@ Installation
 
 - Install this module using the official Backdrop CMS instructions at
   https://backdropcms.org/guide/modules
-- Copy or transfer the 'flexible_template` folder to your `layouts` directory.
+- Copy or transfer the `flexible_template` folder to your `layouts` directory.
 - Create a layout as usual, at `admin/structure/layouts/add` and choose 
   "Flexible template" as your layout template. You will be directed to the 
   block add page on save, as usual.
