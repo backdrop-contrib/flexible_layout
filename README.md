@@ -1,6 +1,9 @@
 Flexible layout
 ============
 
+‼️ Obsolete as of Backdrop CMS 1.14.0. This functionality got merged into
+core.
+
 Provides a layout with configurable rows, cloumns and regions.
 Requires the Flexible Template layout template.
 
